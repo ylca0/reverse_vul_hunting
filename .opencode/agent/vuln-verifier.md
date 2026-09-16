@@ -77,7 +77,12 @@ lengths — never weaponized payloads).
   for CONFIRMED (dynamic).
 - If confirmed: estimate impact honestly — controlled PC? arbitrary write?
   auth bypass with concrete consequence? info leak that defeats ASLR?
-  "Theoretical" exploitability must be labeled theoretical.
+  "Theoretical" exploitability must be labeled theoretical. For
+  memory-corruption RCE grading, apply the weaponization chain rubric in the
+  `poc-recipes` skill (hijack primitive → payload pointer → pivot → mprotect
+  → PLT reuse): grade by the weakest missing element, and factor in the
+  hardening recon facts from the threat model (no ASLR/canary/PIE upgrades
+  the grade; NX alone forces the mprotect path).
 
 ## Verdict schema (output at the END of your reply, and to stdout as JSON)
 

@@ -89,6 +89,25 @@ so the report can carry them honestly:
 - allocator (glibc/musl/custom) — changes heap-exploitation primitives
 - is there an auth gate in front, and can it be reached without credentials
 
+### Hardening recon checklist (exploitability inputs)
+
+Mitigation presence/absence decides which exploitation paths are even worth
+grading — collect these during triage (cheap: `meta`, segments, import scan),
+not during PoC forging:
+
+| Check | How | Consequence if missing |
+|---|---|---|
+| ASLR | binary/segment type flags, runtime maps if available | fixed addresses → reliable ROP, no leak needed |
+| PIE | ET_DYN vs ET_EXEC, segment vmaddrs | PLT/GOT at fixed addresses |
+| Stack canary | `__stack_chk_fail` import, canary refs in prologues | direct return-address overwrite is viable |
+| DEP/NX | segment flags on data segments | need mprotect/ROP instead of raw shellcode |
+| FORTIFY | `__*_chk` imports | naive overflow recipes may fail |
+| Version-specific addresses | PLT/GOT layout (`objdump -j .plt`) | payloads are version-locked; note per-version tables |
+
+Real-world reference: FortiGate FortiOS (CVE-2022-42475 era) shipped with no
+ASLR/canary/PIE — that single triage fact converted a crash into a graded
+high-confidence RCE before any exploit work began.
+
 ## 5. Outputs
 
 `reports/threat-model-<binary-name>.md` with: system context, crown-jewel

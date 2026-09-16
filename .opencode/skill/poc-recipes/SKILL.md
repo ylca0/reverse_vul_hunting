@@ -1,6 +1,6 @@
 ---
 name: poc-recipes
-description: PoC construction ladder and per-vulnerability-class trigger recipes for binaries — safe harm-minimizing triggers, exit-code/sanitizer verdicts, and how to package a PoC as evidence. Use when turning a CONFIRMED finding into a runnable proof for verification or a report artifact.
+description: PoC construction ladder and per-vulnerability-class trigger recipes for binaries — safe harm-minimizing triggers, exit-code/sanitizer verdicts, and how to package a PoC as evidence; plus memory-corruption weaponization assessment patterns (crash triage, stack pivot, ROP chain shapes, PLT reuse) for RCE-grade impact grading. Use when turning a CONFIRMED finding into a runnable proof or grading exploitability.
 ---
 
 # PoC Recipes
@@ -64,7 +64,77 @@ evidence that upgrades a finding to CONFIRMED (dynamic) or kills it.
 **Path traversal (CWE-22)**
 - P3: `../../<known-readable-file>` to a file-consuming parameter; success = content of the outside file reflected.
 
-## 3. Input construction helpers
+## 3. Memory-corruption weaponization patterns (RCE impact grading)
+
+Proven assessment sequence from real-world exploit development
+(CVE-2022-42475 FortiGate heap overflow). Use it to grade L4 impact honestly:
+if the chain below is missing a piece, say the RCE rating is conditional.
+
+**Step 1 — Crash triage: which hijack primitive?**
+At the faulting instruction, classify:
+- `call QWORD PTR [rax]` / `[reg]` — function-pointer hijack; RIP = value AT
+  the address in the register. The register may itself be poisoned — check
+  what the deref reads.
+- `jmp/call reg` — direct register control.
+- `ret` — stack smash; ROP from the overflow itself.
+Grab `i r` (register snapshot) at crash time — this is the single most
+valuable artifact; every later decision reads from it.
+
+**Step 2 — Find the payload pointer (register audit)**
+Scan the crash-time registers for pointers into attacker-controlled data
+(verify with `x/xg $reg` — expect your pattern bytes). Rank candidates:
+discard ones pointing too far into the payload (risk mprotect-ing the wrong
+page). Typical outcome: 2-3 usable registers, e.g. rbx/rdi/rdx.
+
+**Step 3 — Stack pivot (single gadget preferred)**
+At a `call [rax]` hijack, the next `ret` pops from the REAL stack — useless
+unless pivoted. Search shape: `push <payload_reg>; ...; pop rsp; ...; ret;`
+(one gadget, because after pivot the chain must already be laid out).
+**Gadget viability checklist before committing**:
+- every intermediate memory access (`adc byte [rbx+0x41], bl` style) must
+  have a writable, mapped target — verify at crash time with `x/xg $rbx`
+- side effects clobber as few chain-relevant registers as possible
+- confirm the gadget bytes yourself (disasm at the exact address), never
+  trust a tool listing blindly
+
+**Step 4 — mprotect chain (DEP bypass shape)**
+Goal: `mprotect(page_align(payload), 0x5000, RWX)` then jump to shellcode.
+Argument setup on System V x86-64: rdi/rsi/rdx via `pop rdi/rsi/rdx; ret;`.
+When a needed move gadget is missing (`mov rdi, rax; ret;`), substitute
+compositions: `pop rax; ret;` + `and rax, rdi; ret;` for page alignment +
+`mov rdi, rax; call rbx;` pointing at a NOP/`ret;` gadget, followed by a
+ret-sled sized to where the NOP's `ret` lands. Close with
+`pop rax; ret;` + `jmp rax;` into the PLT entry, then `jmp rsp;` to slide
+into the shellcode.
+
+**Step 5 — PLT reuse over raw syscalls (embedded/ appliances)**
+Environments without shell/interpreters: resolve function addresses from the
+target binary itself, not generic gadgets:
+```sh
+objdump -D -j .plt <bin> | egrep ' <(mprotect|AES_set_decrypt_key|calloc)@plt>'
+```
+Reusing the target's own libc/OpenSSL PLT (mprotect, crypto primitives,
+calloc) makes the payload self-sufficient. Addresses shift per firmware
+version — pattern for portability: patch placeholder bytes (`0x33333333…`)
+in shellcode at runtime from a per-version address table.
+
+**Step 6 — Staged delivery (large payloads)**
+Multi-MB implants embedded in the overflow buffer corrupt before the trigger
+fires. Reliable shape: small resident shellcode connects back → downloads an
+encrypted implant → decrypts (reusing target's crypto PLT) → writes to disk →
+`execve`. Keep the in-overflow portion minimal (fits ~64k) and move bulk data
+to the second stage.
+
+**Impact grading rubric (feeds L4)**
+
+| Chain element present | Rating wording |
+|---|---|
+| hijack + payload ptr in register + viable pivot gadget exists | RCE: high confidence (static) |
+| above + mprotect chain + no bad chars in shellcode space | RCE: strong (conditions listed per-version) |
+| crash reachable but no controllable pointer / pivot | control-flow hijack: theoretical |
+| overwrite of function pointer/fn table only | label primitive, not "RCE", until chain assessed |
+
+## 4. Input construction helpers
 
 - Use python3 one-liners to build binary inputs; save to `reports/poc/<finding-id>-input.bin` so runs are replayable:
   `python3 -c 'import sys;sys.stdout.buffer.write(b"A"*120)' > reports/poc/F-001-input.bin`
@@ -73,7 +143,7 @@ evidence that upgrades a finding to CONFIRMED (dynamic) or kills it.
 - Determinism: run the crash trigger 3x; record all three exit codes. Flaky →
   note conditions, downgrade confidence wording.
 
-## 4. PoC evidence package (per finding)
+## 5. PoC evidence package (per finding)
 
 ```
 reports/poc/F-00X/
