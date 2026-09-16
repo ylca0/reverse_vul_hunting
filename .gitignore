@@ -1,0 +1,8 @@
+/reports/
+/.idea/
+*.i64
+*.idb
+node_modules
+package.json
+package-lock.json
+bun.lock
