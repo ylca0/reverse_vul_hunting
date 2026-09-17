@@ -104,4 +104,4 @@ opencode
 
 ## 许可
 
-MIT —— 注意：仓库尚未添加 LICENSE 文件，发布前请先选定许可证。
+MIT

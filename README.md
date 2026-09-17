@@ -104,4 +104,4 @@ Outputs land in `reports/<name>-<date>.md` with PoC packages under `reports/poc/
 
 ## License
 
-MIT — see note: a LICENSE file has not been added yet; pick one before publishing.
+MIT
