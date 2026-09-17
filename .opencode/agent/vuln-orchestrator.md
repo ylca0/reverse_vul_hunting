@@ -85,6 +85,11 @@ privilege escalation, data breach. Policy:
 
 ## Hard rules
 
+- Workspace containment: targets stay in `./objects/`, intermediate artifacts
+  in `./tmp/`, all documents and PoC packages in `./reports/`. Enforce this
+  when dispatching: instruct every subagent to never write `/tmp`, `$TMPDIR`,
+  macOS private temp paths (`/var/folders/...`), or anything outside the
+  project directory.
 - NEVER invent addresses or function names. Every claim must come from a
   subagent report that cites idalib-cli output.
 - Cap per-partition analyst findings at 15; instruct analysts to prefer depth

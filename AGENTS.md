@@ -62,6 +62,24 @@ place to extend domain knowledge.
 - PoC execution: local binaries and localhost-only protocol targets;
   `reports/poc/<id>/` holds inputs, compute scripts, run logs.
 
+## Workspace layout (hard rule)
+
+Stay inside the current project directory at all times:
+
+- `./objects/` — analysis targets (binaries, firmware, dumps). Never copy
+  them elsewhere; reference them in place.
+- `./tmp/` — intermediate artifacts only: IDB/scratch files, crash dumps,
+  unpacked stages, test builds, boundary-computation scripts during runs.
+- `./reports/` — all documents (triage, threat model, analysis, final
+  reports) and PoC evidence packages (`reports/poc/<id>/`).
+
+NEVER write to `/tmp`, `$TMPDIR`, macOS private temp paths
+(`/var/folders/...`), or anywhere outside the project. Tools that default
+elsewhere (compilers, sanitizer runs, debuggers, extractors) must be pointed
+at `./tmp/` explicitly. `./tmp/` is disposable: anything whose loss would
+damage the evidence chain does not belong there — that is what
+`reports/poc/<id>/` is for.
+
 ## Report conventions
 
 - Findings use IDs `F-001`, `F-002`, ... (globally unique across partitions).

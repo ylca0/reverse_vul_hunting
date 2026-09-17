@@ -15,8 +15,13 @@
       "nm *": "allow",
       "codesign *": "allow",
       "python3 samples/*": "allow",
+      "python3 objects/*": "allow",
       "clang samples/*": "allow",
+      "clang objects/*": "allow",
+      "clang * -o tmp/*": "allow",
       "gcc samples/*": "allow",
+      "gcc objects/*": "allow",
+      "gcc * -o tmp/*": "allow",
       "python3 reports/poc/*": "allow",
       "python3 -c *": "ask",
       "mkdir *": "allow",
@@ -26,6 +31,7 @@
     },
     "external_directory": {
       "~/Documents/reverse/**": "allow",
+      "/tmp/**": "allow",
       "*": "ask"
     }
   }

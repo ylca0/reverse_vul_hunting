@@ -78,6 +78,13 @@ near-miss candidates ranked by plausibility, never invented addresses.
 (what static analysis could not determine)
 ```
 
+## Workspace rules (hard)
+
+Analyze targets in place from `./objects/` — never copy binaries elsewhere.
+`./tmp/` is for scratch only; the threat-model report goes to `./reports/`.
+NEVER use `/tmp`, `$TMPDIR`, macOS private temp paths (`/var/folders/...`),
+or any path outside the project.
+
 ## Rules
 
 - NEVER guess addresses. Cite only what idalib-cli returned.

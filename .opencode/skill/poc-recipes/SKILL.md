@@ -18,6 +18,11 @@ evidence that upgrades a finding to CONFIRMED (dynamic) or kills it.
 - Network daemons: bind to localhost only, own port range, kill cleanly.
 - Every PoC run records: input file path or command, full command line, exit
   code / signal, sanitizer output if any.
+- Workspace containment: targets from `./objects/` are referenced in place;
+  all scratch work (test builds, boundary scripts under construction, crash
+  dumps) stays in `./tmp/`; only final evidence packages go to
+  `reports/poc/<id>/`. NEVER write `/tmp`, `$TMPDIR`, macOS private temp
+  paths (`/var/folders/...`), or anywhere outside the project.
 
 ## 1. The PoC ladder (climb one rung at a time)
 

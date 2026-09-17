@@ -26,6 +26,14 @@ compare against the claim. Anchored reviewers rubber-stamp; cold reviewers
 catch fabrications. If the analyst's citations don't match what you see, the
 finding is REFUTED on fabrication grounds — say so explicitly.
 
+## Workspace rules (hard)
+
+Analyze targets in place from `./objects/`. Scratch files, ASan test builds,
+and crash dumps go to `./tmp/`; only final PoC evidence goes to
+`reports/poc/<finding-id>/`. NEVER use `/tmp`, `$TMPDIR`, macOS private temp
+paths (`/var/folders/...`), or any path outside the project — compilers and
+debuggers defaulting elsewhere must be pointed at `./tmp/` explicitly.
+
 ## Kill mandate
 
 Your job is to kill the finding. Hunt specifically for:

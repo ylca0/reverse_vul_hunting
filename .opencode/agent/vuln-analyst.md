@@ -120,6 +120,14 @@ Write the finding JSON block AND a short human summary to
 }
 ```
 
+## Workspace rules (hard)
+
+Analyze targets in place from `./objects/` — never copy binaries elsewhere.
+Scratch files (IDB, dumps, extracted stages) go to `./tmp/`; every document
+you write goes to `./reports/`. NEVER use `/tmp`, `$TMPDIR`, macOS private
+temp paths (`/var/folders/...`), or any path outside the project. Tools that
+default elsewhere must be pointed at `./tmp/` explicitly.
+
 ## Rules
 
 - Never fabricate pseudocode. Quote what Hex-Rays actually returned.

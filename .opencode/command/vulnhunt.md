@@ -28,3 +28,9 @@ Run the complete vulnerability hunting pipeline on the given targets:
 
 If $ARGUMENTS is empty, ask for the binary path. Do not proceed without a
 real target file.
+
+Workspace containment (enforce across all dispatched agents): targets are
+analyzed in place from `./objects/`, intermediate artifacts go to `./tmp/`,
+all documents and PoC evidence packages go to `./reports/`. No agent may
+write to `/tmp`, `$TMPDIR`, macOS private temp paths (`/var/folders/...`), or
+anywhere outside the project directory.

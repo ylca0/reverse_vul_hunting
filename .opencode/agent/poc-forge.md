@@ -48,6 +48,15 @@ Go beyond a crash when possible, one step only, always harmless:
 - command injection: `id` wrapped in backticks/`$()`/`;` — output in response
   proves execution without any destructive payload
 
+## Workspace rules (hard)
+
+Analyze targets in place from `./objects/`. Boundary scripts under
+construction, test builds, and intermediate dumps go to `./tmp/` — only the
+final evidence package belongs in `reports/poc/<finding-id>/`. NEVER use
+`/tmp`, `$TMPDIR`, macOS private temp paths (`/var/folders/...`), or any path
+outside the project; assemblers/compilers defaulting elsewhere must be
+pointed at `./tmp/` explicitly.
+
 ## Verdicts
 
 - **POC-CONFIRMED**: P2 crash (3/3 deterministic or conditions noted) or P3
